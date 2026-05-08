@@ -5,3 +5,4 @@ Telethon==1.*
 pyromod==1.5
 TgCrypto==1.*
 kurigram
+Flask>=2.3.0
