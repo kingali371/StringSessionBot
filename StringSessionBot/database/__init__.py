@@ -1,21 +1,26 @@
+import os
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import scoped_session, sessionmaker
 
-from env import DATABASE_URL
+# استخدم SQLite محلياً
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///database.db")
 
-count_ = 0
-def start() -> scoped_session:
-    if DATABASE_URL == "":
-        if count_ < 1:
-            count += 1
-            return print("Database url not provided..\nBut this time I won't stop 😉")
-        return
-    engine = create_engine(DATABASE_URL)
-    BASE.metadata.bind = engine
-    BASE.metadata.create_all(engine)
-    return scoped_session(sessionmaker(bind=engine, autoflush=False))
+# إذا كان الرابط MongoDB حوله إلى SQLite
+if DATABASE_URL and DATABASE_URL.startswith("mongodb"):
+    print("⚠️ MongoDB غير مدعوم، استخدام SQLite بدلاً من ذلك")
+    DATABASE_URL = "sqlite:///database.db"
 
-if DATABASE_URL != "":
-    BASE = declarative_base()
-    SESSION = start()
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+SESSION = scoped_session(sessionmaker(bind=engine))
+
+def start():
+    return SESSION
+
+# إنشاء الجداول إذا لم تكن موجودة
+from StringSessionBot.database.users import Users
+from StringSessionBot.database.blacklist import BlackList
+from StringSessionBot.database.banned import Banned
+
+Users.__table__.create(engine, checkfirst=True)
+BlackList.__table__.create(engine, checkfirst=True)
+Banned.__table__.create(engine, checkfirst=True)
