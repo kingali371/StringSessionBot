@@ -2,7 +2,9 @@ services:
   - type: worker
     name: string-session-bot
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      pip install -r requirements.txt
+      pip install psycopg2-binary
     startCommand: python3 bot.py
     envVars:
       - key: API_ID
@@ -12,8 +14,15 @@ services:
       - key: BOT_TOKEN
         sync: false
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: string-session-db
+          property: connectionString
       - key: MUST_JOIN
         value: ""
       - key: SUPPORT_CHAT
         value: ""
+
+databases:
+  - name: string-session-db
+    databaseName: string_session
+    plan: free
